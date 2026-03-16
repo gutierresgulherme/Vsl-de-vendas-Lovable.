@@ -172,7 +172,7 @@ const Index = () => {
 
     const getCheckoutLink = useCallback((plan: 'prata' | 'gold') => {
         const hostname = window.location.hostname;
-        const isUSA = false;
+        const isUSA = true;
         const key = isUSA
             ? (plan === 'prata' ? 'usa_prata' : 'usa_gold')
             : (plan === 'prata' ? 'br_prata' : 'br_gold');
@@ -706,4 +706,5 @@ const Index = () => {
 };
 
 export default Index;
+
 
