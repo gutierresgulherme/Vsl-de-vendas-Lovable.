@@ -27,7 +27,13 @@ const Index = () => {
     const [loading, setLoading] = useState(true);
     const [videoError, setVideoError] = useState<string | null>(null);
     const [showFallbackPlay, setShowFallbackPlay] = useState(false);
-    const [timeLeft, setTimeLeft] = useState(() => { const saved = localStorage.getItem("vsl_timer_remaining"); return saved ? JSON.parse(saved) : { minutes: 5, seconds: 0 }; });
+    const [checkoutLinks, setCheckoutLinks] = useState<Record<string, string>>({
+        br_prata: 'https://www.sharckpay.vip/checkout/lovable-infinito-17-90-p36m',
+        br_gold: 'https://www.sharckpay.vip/checkout/lovable-infinito-27-90-y3s5',
+        usa_prata: 'https://www.sharckpay.vip/checkout/lovable-infinito-17-90-p36m',
+        usa_gold: 'https://www.sharckpay.vip/checkout/lovable-infinito-27-90-y3s5',
+    });
+    const [timeLeft, setTimeLeft] = useState({ minutes: 5, seconds: 0 });
 
     // --- Refs ---
     const videoRef = useRef<HTMLVideoElement>(null);
@@ -57,6 +63,9 @@ const Index = () => {
                     setVideoError("Nenhuma VSL encontrada.");
                 }
 
+                // 2. Load Checkout Links from DB
+                // Links de checkout são definidos manualmente (sharckpay.vip) — não sobrescrever com dados do banco
+                console.log("[INDEX] Links de checkout fixos (sharckpay.vip) — ignorando banco de dados");
             } catch (err) {
                 console.error("Error initializing page:", err);
             } finally {
@@ -123,7 +132,7 @@ const Index = () => {
             } else if (videoRef.current && !videoRef.current.paused) {
                 setShowFallbackPlay(false);
             }
-        }, 1500);
+        }, 3000);
         return () => clearInterval(checkPlaying);
     }, [vslData?.video_url, videoError]);
 
@@ -137,7 +146,7 @@ const Index = () => {
                 if (prev.seconds === 0) {
                     return { minutes: prev.minutes - 1, seconds: 59 };
                 }
-                const next = { ...prev, seconds: prev.seconds - 1 }; localStorage.setItem("vsl_timer_remaining", JSON.stringify(next)); return next;
+                return { ...prev, seconds: prev.seconds - 1 };
             });
         }, 1000);
         return () => clearInterval(timer);
@@ -697,6 +706,3 @@ const Index = () => {
 };
 
 export default Index;
-
-
-

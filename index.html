@@ -2,23 +2,6 @@
 <html lang="en">
 
 <head>
-  <script>
-    // Forçar limpeza de Service Workers antigos que travam o front antigo
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.getRegistrations().then(function(registrations) {
-        for(let registration of registrations) {
-          registration.unregister();
-          console.log('[SW] Unregistered old worker');
-        }
-      });
-    }
-    // Limpar caches nomeados
-    if ('caches' in window) {
-      caches.keys().then(function(names) {
-        for (let name of names) caches.delete(name);
-      });
-    }
-  </script>
   <meta charset="UTF-8" />
   <meta name="viewport"
     content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover" />
