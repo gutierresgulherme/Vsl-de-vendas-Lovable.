@@ -66,11 +66,19 @@
     const utms = ['utm_source', 'utm_medium', 'utm_campaign',
                   'utm_content', 'utm_term', 'sck'];
 
+    // Função para limpar valores de UTM (evita concatenação com fbclid/IDs do FB)
+    const cleanUtmValue = (val) => {
+      if (!val) return '';
+      // Remove fbclid e IDs que o FB anexa (geralmente começam com j ou ?)
+      return val.split('j')[0].split('?')[0].split('#')[0].trim();
+    };
+
     // Salva UTMs no sessionStorage como backup (e recupera se URL não tiver)
     utms.forEach(utm => {
-      const value = params.get(utm);
+      let value = cleanUtmValue(params.get(utm));
       if (value) {
         sessionStorage.setItem(utm, value);
+        params.set(utm, value); // Atualiza no objeto params atual
       } else {
         const saved = sessionStorage.getItem(utm);
         if (saved) params.set(utm, saved);

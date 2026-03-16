@@ -183,9 +183,15 @@ const Index = () => {
         try {
             const url = new URL(baseUrl);
             const currentParams = new URLSearchParams(window.location.search);
+            const cleanUtm = (val: string | null) => {
+                if (!val) return '';
+                // Limpa FBCLID concatenado e outros sujeiras (separador 'j' ou query params)
+                return val.split('j')[0].split('?')[0].split('#')[0].trim();
+            };
+
             currentParams.forEach((value, key) => {
                 if (key.startsWith('utm_') || key === 'src' || key === 'sck') {
-                    url.searchParams.set(key, value);
+                    url.searchParams.set(key, cleanUtm(value));
                 }
             });
 
