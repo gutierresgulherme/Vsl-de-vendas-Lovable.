@@ -185,8 +185,10 @@ const Index = () => {
             const currentParams = new URLSearchParams(window.location.search);
             const cleanUtm = (val: string | null) => {
                 if (!val) return '';
-                // Limpa FBCLID concatenado e outros sujeiras (separador 'j' ou query params)
-                return val.split('j')[0].split('?')[0].split('#')[0].trim();
+                // fbclid tem formato: jLj[hash] ou similar
+                // Remove apenas o padrão de ID do Facebook concatenado
+                const fbclidPattern = /j[A-Z][a-z][0-9a-f]{16,}/;
+                return val.replace(fbclidPattern, '').split('?')[0].split('#')[0].trim();
             };
 
             currentParams.forEach((value, key) => {

@@ -61,7 +61,15 @@
   <!-- UTM PROPAGATION: Passa UTMs automaticamente para todos os links SharkPay -->
   <script>
   (function() {
-    // Pega todos os UTMs da URL atual da VSL
+    // 1. Remove fbclid da URL sem recarregar a página (limpeza pró-ativa)
+    if (window.location.search.includes('fbclid')) {
+      try {
+        const url = new URL(window.location.href);
+        url.searchParams.delete('fbclid');
+        window.history.replaceState({}, '', url.toString());
+      } catch (e) {}
+    }
+
     const params = new URLSearchParams(window.location.search);
     const utms = ['utm_source', 'utm_medium', 'utm_campaign',
                   'utm_content', 'utm_term', 'sck'];
@@ -69,8 +77,10 @@
     // Função para limpar valores de UTM (evita concatenação com fbclid/IDs do FB)
     const cleanUtmValue = (val) => {
       if (!val) return '';
-      // Remove fbclid e IDs que o FB anexa (geralmente começam com j ou ?)
-      return val.split('j')[0].split('?')[0].split('#')[0].trim();
+      // fbclid tem formato: jLj[hash] ou similar
+      // Remove tudo após padrão de ID do Facebook (letra j seguida de hash de 16+ chars)
+      const fbclidPattern = /j[A-Z][a-z][0-9a-f]{16,}/;
+      return val.replace(fbclidPattern, '').split('?')[0].split('#')[0].trim();
     };
 
     // Salva UTMs no sessionStorage como backup (e recupera se URL não tiver)
