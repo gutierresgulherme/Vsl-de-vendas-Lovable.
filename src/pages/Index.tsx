@@ -50,7 +50,7 @@ const Index = () => {
                 const { vsl, isActive: domainActive, currency: domainCurrency } = await getCurrentVSLInfo();
 
                 setIsActive(domainActive);
-                setCurrency('BRL');
+                setCurrency(domainCurrency);
 
                 if (vsl) {
                     setVslData(vsl);
@@ -172,7 +172,7 @@ const Index = () => {
 
     const getCheckoutLink = useCallback((plan: 'prata' | 'gold') => {
         const hostname = window.location.hostname;
-        const isUSA = true;
+        const isUSA = hostname.includes('lovable-app.vip');
         const key = isUSA
             ? (plan === 'prata' ? 'usa_prata' : 'usa_gold')
             : (plan === 'prata' ? 'br_prata' : 'br_gold');
@@ -183,45 +183,48 @@ const Index = () => {
         try {
             const url = new URL(baseUrl);
             const currentParams = new URLSearchParams(window.location.search);
+            const isUSA = window.location.hostname.includes('lovable-app.vip');
+            const currency = isUSA ? 'USD' : 'BRL';
+
             const cleanUtm = (val: string | null) => {
                 if (!val) return '';
-                // fbclid tem formato: jLj[hash] ou similar
-                // Remove apenas o padrão de ID do Facebook concatenado
                 const fbclidPattern = /j[A-Z][a-z][0-9a-f]{16,}/;
                 return val.replace(fbclidPattern, '').split('?')[0].split('#')[0].trim();
             };
 
-            currentParams.forEach((value, key) => {
-                if (key.startsWith('utm_') || key === 'src' || key === 'sck') {
+            // Lista de UTMs e parâmetros de rastreio
+            const utmKeys = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term', 'src', 'sck'];
+
+            utmKeys.forEach(key => {
+                const value = currentParams.get(key) || sessionStorage.getItem(key);
+                if (value) {
                     url.searchParams.set(key, cleanUtm(value));
                 }
             });
 
             // 🔴 UTMIFY: Disparar evento initiateCheckout ANTES de redirecionar
-            const utmifyPixel = (window as any).Utmify || (window as any).__utmify;
+            const utmifyPixel = (window as any).Utmify || (window as any).__utmify || (window as any).utmify;
             if (utmifyPixel?.track) {
                 try {
                     utmifyPixel.track('initiateCheckout', {
                         value: 0,
-                        currency: 'BRL',
+                        currency: currency,
                     });
-                    console.log("[UTMIFY] initiateCheckout disparado - botão:", buttonId);
+                    console.log(`[UTMIFY] initiateCheckout disparado (${currency}) - botão:`, buttonId);
                 } catch (pixelErr) {
                     console.warn("[UTMIFY] Erro ao disparar initiateCheckout:", pixelErr);
                 }
             } else {
-                // Fallback: tentar via pixel global
+                // Fallback: tentar via pixel global ou pixelId
                 try {
                     const w = window as any;
                     if (w.PixelManager?.track) {
-                        w.PixelManager.track('initiateCheckout');
-                    } else if (w.pixelId) {
-                        console.log("[UTMIFY] pixelId detectado mas SDK não carregado ainda:", w.pixelId);
+                        w.PixelManager.track('initiateCheckout', { currency: currency });
                     }
                 } catch(e) { /* silent */ }
             }
 
-            console.log("[CHECKOUT] Redirecionando para:", url.toString());
+            console.log(`[CHECKOUT] [${currency}] Redirecionando para:`, url.toString());
 
             // Pequeno delay para garantir que o evento foi enviado antes do redirect
             setTimeout(() => {
@@ -563,7 +566,7 @@ const Index = () => {
                                             <p className="text-gray-400 uppercase tracking-widest text-xs">E o que você vai pagar aqui?</p>
                                             <div className="flex flex-col items-center">
                                                 <span className="text-4xl md:text-6xl font-black text-white drop-shadow-[0_0_15px_rgba(16,185,129,0.5)]">
-                                                    Apenas R$27,90
+                                                    Apenas {PRICE_GOLD}
                                                 </span>
                                                 <span className="text-yellow-400 font-bold uppercase tracking-widest text-sm mt-2">UMA ÚNICA VEZ.</span>
                                             </div>

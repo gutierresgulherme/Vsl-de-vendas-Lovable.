@@ -18,16 +18,22 @@ export const getSessionId = (): string => {
     return sessionId;
 };
 
-// Capturar parâmetros UTM da URL
+// Capturar parâmetros UTM da URL com fallback para sessionStorage
 export const getUtmParams = (): Record<string, string> => {
     const params = new URLSearchParams(window.location.search);
-    return {
-        utm_source: params.get("utm_source") || "",
-        utm_medium: params.get("utm_medium") || "",
-        utm_campaign: params.get("utm_campaign") || "",
-        utm_content: params.get("utm_content") || "",
-        utm_term: params.get("utm_term") || "",
-    };
+    const utmKeys = ["utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term", "src", "sck"];
+    const results: Record<string, string> = {};
+
+    utmKeys.forEach(key => {
+        const value = params.get(key) || sessionStorage.getItem(key) || "";
+        results[key] = value;
+        // Se encontramos na URL, salvamos no sessionStorage para persistência
+        if (params.get(key)) {
+            sessionStorage.setItem(key, params.get(key)!);
+        }
+    });
+
+    return results;
 };
 
 // Registrar clique em botão
@@ -36,6 +42,7 @@ export const trackButtonClick = async (buttonId: string): Promise<void> => {
         const sessionId = getSessionId();
         const utms = getUtmParams();
         const buttonLabel = BUTTON_LABELS[buttonId] || buttonId;
+        const region = window.location.hostname.includes('lovable-app.vip') ? 'USA' : 'BR';
 
         await (supabase.from("button_clicks" as any) as any).insert({
             button_id: buttonId,
@@ -43,7 +50,7 @@ export const trackButtonClick = async (buttonId: string): Promise<void> => {
             page_url: window.location.href,
             session_id: sessionId,
             vsl_slug: "home-vsl",
-            region: "BR",
+            region: region,
             ...utms,
         });
 
@@ -85,8 +92,9 @@ export const initPageSession = async (): Promise<void> => {
     try {
         const sessionId = getSessionId();
         const utms = getUtmParams();
+        const region = window.location.hostname.includes('lovable-app.vip') ? 'USA' : 'BR';
 
-        console.log("[Analytics] Initializing session:", sessionId);
+        console.log("[Analytics] Initializing session:", sessionId, "Region:", region);
 
         const { data: existing } = await (supabase
             .from("page_sessions" as any) as any)
@@ -100,7 +108,7 @@ export const initPageSession = async (): Promise<void> => {
                 page_url: window.location.href,
                 referrer: document.referrer || null,
                 user_agent: navigator.userAgent,
-                region: "BR",
+                region: region,
                 vsl_id: "home-vsl",
                 ...utms,
             });
