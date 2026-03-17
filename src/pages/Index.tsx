@@ -59,6 +59,22 @@ const Index = () => {
                     setVslData(vsl);
                     try {
                         await initPageSession();
+                        
+                        // 🟢 UTMIFY: Disparo manual de PageView para garantir rastreamento
+                        const utmifyPixel = (window as any).Utmify || (window as any).__utmify || (window as any).utmify;
+                        if (utmifyPixel?.track) {
+                            utmifyPixel.track('pageView');
+                            console.log("[UTMIFY] PageView disparado manualmente");
+                        } else {
+                            // Fallback caso o script ainda esteja carregando
+                            setTimeout(() => {
+                                const retryUtmify = (window as any).Utmify || (window as any).__utmify || (window as any).utmify;
+                                if (retryUtmify?.track) {
+                                    retryUtmify.track('pageView');
+                                    console.log("[UTMIFY] PageView disparado manualmente (após delay)");
+                                }
+                            }, 2000);
+                        }
                     } catch (analyticsErr) {
                         console.warn("[Analytics] Initialization failed:", analyticsErr);
                     }
@@ -248,9 +264,9 @@ const Index = () => {
     if (!isActive) return <div className="fixed inset-0 bg-black z-[9999]" />;
 
     const HEADLINE = vslData?.headline || "VOCÊ AINDA PAGA PRA USAR O LOVABLE?";
-    const PRICE_PRATA = currency === 'USD' ? '$17.90' : 'R$17,90';
-    const PRICE_GOLD = currency === 'USD' ? '$27.90' : 'R$27,90';
-    const OLD_PRICE = currency === 'USD' ? '$49.90' : 'R$49,90';
+    const PRICE_PRATA = 'R$17,90';
+    const PRICE_GOLD = 'R$27,90';
+    const OLD_PRICE = 'R$49,90';
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-[hsl(240,10%,3.9%)] via-[hsl(267,50%,10%)] to-[hsl(190,50%,10%)] text-foreground relative">
@@ -385,6 +401,7 @@ const Index = () => {
                                 href={getCheckoutLink('prata')}
                                 target="_blank"
                                 rel="noopener noreferrer"
+                                onClick={(e) => { e.preventDefault(); handleCheckoutClick('btn-comprar-17-1', getCheckoutLink('prata')); }}
                                 className="relative flex items-center justify-center gap-3 w-full max-w-[300px] px-6 py-3.5 rounded-full bg-gradient-to-b from-red-500 to-red-700 border border-white/20 text-white font-black text-base md:text-lg uppercase tracking-tighter shadow-[0_10px_30px_rgba(185,28,28,0.4)] active:scale-95 transition-all duration-300 overflow-hidden"
                             >
                                 <div className="absolute top-0 left-[-100%] w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent transition-all duration-1000 group-hover:left-[100%]"></div>
@@ -597,6 +614,7 @@ const Index = () => {
                         href={getCheckoutLink('gold')}
                         target="_blank"
                         rel="noopener noreferrer"
+                        onClick={(e) => { e.preventDefault(); handleCheckoutClick('btn-comprar-bonus', getCheckoutLink('gold')); }}
                         className="relative flex items-center justify-center gap-3 w-full max-w-[340px] px-6 py-3.5 rounded-full bg-gradient-to-b from-emerald-500 to-emerald-700 border border-white/20 text-white font-black text-base md:text-lg uppercase tracking-tight shadow-[0_10px_30px_rgba(5,150,105,0.4)] active:scale-95 transition-all duration-300 overflow-hidden"
                     >
                         <div className="absolute top-0 left-[-100%] w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent transition-all duration-1000 group-hover:left-[100%]"></div>
@@ -667,6 +685,7 @@ const Index = () => {
                                 variant="gold" buttonText="QUERO PLANO GOLD"
                                 checkoutLink={getCheckoutLink('gold')}
                                 buttonId="btn-comprar-27-2"
+                                onCheckout={() => handleCheckoutClick('btn-comprar-27-2', getCheckoutLink('gold'))}
                             />
                             <PricingCard
                                 title="⚙️ PLANO PRATA" price={PRICE_PRATA}
@@ -674,6 +693,7 @@ const Index = () => {
                                 variant="silver" buttonText="QUERO PLANO PRATA"
                                 checkoutLink={getCheckoutLink('prata')}
                                 buttonId="btn-comprar-17-2"
+                                onCheckout={() => handleCheckoutClick('btn-comprar-17-2', getCheckoutLink('prata'))}
                             />
                         </div>
                     </Suspense>

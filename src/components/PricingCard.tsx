@@ -59,6 +59,7 @@ export const PricingCard = ({ title, price, features, variant, buttonText, check
             href={checkoutLink || "#"}
             target="_blank"
             rel="noopener noreferrer"
+            onClick={handleLinkClick}
             className={`relative flex items-center justify-center w-full max-w-[280px] mx-auto rounded-full px-5 py-3 text-sm sm:text-base font-black text-white text-center leading-snug whitespace-normal break-words shadow-2xl active:scale-[0.95] transition-all duration-300 overflow-hidden border border-white/20 uppercase tracking-tight ${variant === "gold"
               ? "bg-gradient-to-b from-emerald-500 to-emerald-700 shadow-emerald-900/40"
               : "bg-gradient-to-b from-red-500 to-red-700 shadow-red-900/40"

@@ -44,13 +44,23 @@
   <script src="https://cdn.utmify.com.br/scripts/utms/latest.js" data-utmify-prevent-xcod-sck data-utmify-prevent-subids
     async defer></script>
 
-  <!-- UTMIFY PIXEL DINÂMICO -->
+  <!-- UTMIFY PIXEL DINÂMICO (por domínio) -->
   <script>
-    window.pixelId = "694193c8edf1b9da77b48e2b";
+    // lovable-app.vip → pixel exclusivo desse domínio
+    // metodo-lovable-infinito.vip (e outros) → pixel original
+    var _hostname = window.location.hostname;
+    if (_hostname.includes('lovable-app.vip')) {
+      window.pixelId = "697269d827f998dc679f772f";
+    } else {
+      window.pixelId = "694193c8edf1b9da77b48e2b";
+    }
     var a = document.createElement("script");
     a.setAttribute("async", "");
     a.setAttribute("defer", "");
     a.setAttribute("src", "https://cdn.utmify.com.br/scripts/pixel/pixel.js");
+    a.onload = function() {
+      if (window.Utmify) window.Utmify.track('pageView');
+    };
     document.head.appendChild(a);
   </script>
 </head>
