@@ -11,7 +11,7 @@ import feedback3 from "@/assets/feedback-3.png";
 import chatgptBonus from "@/assets/chatgpt-bonus.png";
 import canvaBonus from "@/assets/canva-bonus.png";
 import garantia7dias from "@/assets/garantia-7dias.png";
-import { initPageSession, setupButtonTracking, setupSharkPayUTMTracking, trackVideoEvent } from "@/lib/analytics";
+import { initPageSession, setupButtonTracking, trackVideoEvent } from "@/lib/analytics";
 
 const db = supabasePublic as any;
 
@@ -59,22 +59,6 @@ const Index = () => {
                     setVslData(vsl);
                     try {
                         await initPageSession();
-
-                        // 🟢 UTMIFY: Disparo manual de PageView para garantir rastreamento
-                        const utmifyPixel = (window as any).Utmify || (window as any).__utmify || (window as any).utmify;
-                        if (utmifyPixel?.track) {
-                            utmifyPixel.track('pageView');
-                            console.log("[UTMIFY] PageView disparado manualmente");
-                        } else {
-                            // Fallback caso o script ainda esteja carregando
-                            setTimeout(() => {
-                                const retryUtmify = (window as any).Utmify || (window as any).__utmify || (window as any).utmify;
-                                if (retryUtmify?.track) {
-                                    retryUtmify.track('pageView');
-                                    console.log("[UTMIFY] PageView disparado manualmente (após delay)");
-                                }
-                            }, 2000);
-                        }
                     } catch (analyticsErr) {
                         console.warn("[Analytics] Initialization failed:", analyticsErr);
                     }
@@ -94,7 +78,6 @@ const Index = () => {
 
         initPage();
         setupButtonTracking();
-        setupSharkPayUTMTracking();  // ✅ Garantir UTMs nos links SharkPay
     }, []);
 
     // --- Video Player Logic ---
@@ -227,28 +210,6 @@ const Index = () => {
                     url.searchParams.set(key, cleanUtm(value));
                 }
             });
-
-            // 🔴 UTMIFY: Disparar evento initiateCheckout ANTES de redirecionar
-            const utmifyPixel = (window as any).Utmify || (window as any).__utmify || (window as any).utmify;
-            if (utmifyPixel?.track) {
-                try {
-                    utmifyPixel.track('initiateCheckout', {
-                        value: 0,
-                        currency: currency,
-                    });
-                    console.log(`[UTMIFY] initiateCheckout disparado (${currency}) - botão:`, buttonId);
-                } catch (pixelErr) {
-                    console.warn("[UTMIFY] Erro ao disparar initiateCheckout:", pixelErr);
-                }
-            } else {
-                // Fallback: tentar via pixel global ou pixelId
-                try {
-                    const w = window as any;
-                    if (w.PixelManager?.track) {
-                        w.PixelManager.track('initiateCheckout', { currency: currency });
-                    }
-                } catch(e) { /* silent */ }
-            }
 
             console.log(`[CHECKOUT] [${currency}] Redirecionando para:`, url.toString());
 
